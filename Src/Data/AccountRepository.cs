@@ -65,4 +65,28 @@ public class AccountRepository : IAccountRepository
     {
         return 0 < await _dataContext.SaveChangesAsync();
     }
+
+    public async Task<bool> CheckPasswordAsync(string email, string password)
+{
+    User? user = await _dataContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+    if (user == null)
+    {
+        return false;
+    }
+
+    using var hmac = new HMACSHA512(user.PasswordSalt);
+
+    byte[] computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+    for (int i = 0; i < computedHash.Length; i++)
+    {
+        if (computedHash[i] != user.PasswordHash[i])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
 }

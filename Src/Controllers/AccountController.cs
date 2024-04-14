@@ -37,4 +37,22 @@ public class AccountController : BaseApiController
 
         return TypedResults.Ok(accountDto);
     }
+
+    [HttpPost("login")]
+    public async Task<IResult> Login(LoginDto loginDto)
+    {
+        AccountDto? accountDto = await _accountRepository.GetAccountAsync(loginDto.Email);
+
+        if (accountDto == null)
+        {
+            return TypedResults.BadRequest("Invalid email");
+        }
+
+        if (!await _accountRepository.CheckPasswordAsync(loginDto.Email, loginDto.Password))
+        {
+            return TypedResults.BadRequest("Invalid password");
+        }
+
+        return TypedResults.Ok(accountDto);
+    }
 }
